@@ -1,5 +1,8 @@
 # Jinja2
-En base a la aplicación desarrollada en la Sustitución de CLI por Web, debe asegurarse de utilizar el motor de plantilla Jinja2
+#API de tipo REST
+
+#En base a la aplicación desarrollada en Desplegar Flask sobre Gunicorn y Nginx, debe sustituir la arquitectura de conexión a una base de datos no relacional a manejarla por un API de tipo REST
+#En base a la aplicación desarrollada en la Sustitución de CLI por Web, debe asegurarse de utilizar el motor de plantilla Jinja2
 crearemos 3 carpetas para ejecucion del mismo, main.py; diccionario(ya la teniamos),base_datos.py
 
 #en la que llamamos main, el siguiente codigo
@@ -120,3 +123,60 @@ import sqlite3
 conn = sqlite3.connect('diccionario_slang.db')
 conn.execute('CREATE TABLE diccionario (palabra TEXT, significado TEXT)')
 conn.close()
+
+#En base a la aplicación desarrollada en Desplegar Flask sobre Gunicorn y Nginx, debe sustituir la arquitectura de conexión a una base de datos no relacional a manejarla por un API de tipo REST
+archivo main
+
+from flask import Flask, request, jsonify, Response
+from flask_pymongo import PyMongo
+from bson import json_util
+
+app = Flask(__name__)
+app.config['MONGO_URI']="mongodb://localhost/sustituir"
+mongo=PyMongo(app)
+
+@app.route('/', methods=['POST'])
+
+def agregar_palabra():
+
+	palabra = request.json['palabra']
+	significado = request.json['significado']
+
+	if palabra and significado:
+		id=mongo.db.slangdic.insert(
+				{'palabra':palabra, 'significado':significado}
+			)
+		response = {
+			'id':str(id),
+			'palabra':palabra,
+			'significado':significado,
+		}
+		return response
+	else:
+		return not_found()
+
+	return {'message':'received'}
+
+@app.route("/",methods=['GET'])
+def get_palabras():
+	palabras = mongo.db.slangdic.find()
+	response=json_util.dumps(palabras)
+	return Response(response, mimetype='application/json')
+
+
+
+
+@app.errorhandler(404)
+def not_found(error=None):
+	response = jsonify({
+		'message': 'Resource Not Found: ' + request.url,
+		'status': 404
+	})
+	return response
+
+
+
+
+
+if __name__ == "__main__":
+	app.run(port=5022,debug=True
